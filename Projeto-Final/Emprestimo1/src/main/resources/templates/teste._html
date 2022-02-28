@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="UTF-8">
+    <title>Cliente Oculto</title>
+    </head>
+    <body>
+        <h1>Cadastro Clientes</h1>
+
+        <form:form action="${spring:mvcUrl('UC#grava').build()}" method="post" commandName="usuario">
+            <div>
+                <label for="nome">Nome</label> 
+                <form:input path="nome"/>
+                <form:errors path="nome" />
+            </div>
+
+            <div>
+                <label for="email">E-mail</label>
+                <input type="email" name="email"/>
+                <form:errors path="email" />
+            </div>
+
+            <div>
+                <label for="senha">Senha</label>
+                <input type="password" name="senha"/>
+                <form:errors path="senha" />
+            </div>
+
+            <div>
+                <form:radiobutton path="roles.previlegios" value="ADMIN" label="Administrador" />
+                <form:radiobutton path="roles.previlegios" value="OPERADOR" label="Operador" />
+                <form:errors path="roles" />
+            </div>
+
+            <div>
+                <button type="submit">Cadastrar</button>
+            </div>
+        </form:form>
+    </body>
+</html>

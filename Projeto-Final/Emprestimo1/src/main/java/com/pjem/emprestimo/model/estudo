@@ -1,0 +1,113 @@
+
+
+/////// Customer Service
+public interface CostumerService {
+    Costumer saveCostumer(CostumerDTO costumerDTO);
+    List<Costumer> findAllCostumers();
+    List<Costumer> findByCompanyName(String companyName);
+    Costumer updateCostumer(String companyDocumentNumber, CostumerDTO costumerDTO);
+    Costumer disableCostumer(String companyDocumentNumber);
+}
+
+
+ @PutMapping("costumer")
+    public ResponseEntity<Cadastro> updateCadastro(@Valid @RequestBody
+    Cadastro cadastro) {
+        return ResponseEntity.ok(cadastroService.updateCadastro(cadastro));
+    }
+
+////////// service
+@Service
+public class CostumerServiceImpl implements CostumerService {
+
+    private final CostumerRepository costumerRepository;
+
+    public CostumerServiceImpl(CostumerRepository costumerRepository) {
+        this.costumerRepository = costumerRepository;
+    }
+
+    @Override
+    public Costumer saveCostumer(CostumerDTO costumerDTO) {
+        if(costumerRepository.findByCompanyDocumentNumber(costumerDTO.getCompanyDocumentNumber()).isPresent()) {
+            throw new RuntimeException("There is already a customer with this document number");
+        }
+        return costumerRepository.save(costumerDTO.costumerDTOToCostumer());
+    }
+
+    @Override
+    public List<Costumer> findAllCostumers() {
+        return (List<Costumer>) costumerRepository.findAll();
+    }
+
+List<Costumer> findByCompanyName(String companyName);
+    Optional<Costumer> findByCompanyDocumentNumber(String companyDocumentNumber);
+
+    @Override
+    public List<Costumer> findByCompanyName(String companyName) {
+        return costumerRepository.findByCompanyName(companyName);
+    }
+
+    @Override
+    public Costumer updateCostumer(String companyDocumentNumber, CostumerDTO costumerDTO) {
+        Optional<Costumer> costumer =
+                costumerRepository.findByCompanyDocumentNumber(companyDocumentNumber);
+
+        if(costumer.isEmpty()) {
+            throw new RuntimeException("There is no customer with this document number");
+        }
+
+        BeanUtils.copyProperties(costumerDTO, costumer.get(), "active", "id");
+
+        return costumerRepository.save(costumer.get());
+    }
+
+    @Override
+    public Costumer disableCostumer(String companyDocumentNumber) {
+        Optional<Costumer> costumer =
+                costumerRepository.findByCompanyDocumentNumber(companyDocumentNumber);
+
+        if(costumer.isEmpty()) {
+            throw new RuntimeException("There is no customer with this document number");
+        }
+
+        costumer.get().setActive(false);
+
+        return costumerRepository.save(costumer.get());
+    }
+
+}
+
+/////////// controller
+@RestController
+@RequestMapping("/v1")
+public class AppController {
+
+    private final CostumerService costumerService;
+
+    public AppController(CostumerService costumerService) {
+        this.costumerService = costumerService;
+    }
+
+    @PostMapping("costumer")
+    public ResponseEntity<Costumer> newCostumer(@Valid @RequestBody CostumerDTO costumerDTO) {
+        return new ResponseEntity(costumerService.saveCostumer(costumerDTO), HttpStatus.OK);
+    }
+
+    @GetMapping("costumer")
+    public ResponseEntity<List<Costumer>> findCostumerByName(@Param("companyName") String companyName) {
+        return ResponseEntity.ok(costumerService.findByCompanyName(companyName));
+    }
+
+    @GetMapping("costumer/all")
+    public ResponseEntity<List<Costumer>> allCostumers() {
+        return ResponseEntity.ok(costumerService.findAllCostumers());
+    }
+
+
+
+    @DeleteMapping("costumer/{companyName}")
+    public ResponseEntity<Costumer> disableCostumer(@PathVariable("companyName") String companyName) {
+        return ResponseEntity.ok(costumerService.disableCostumer(companyName));
+    }
+
+}
